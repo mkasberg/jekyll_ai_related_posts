@@ -34,12 +34,12 @@ Gem::Specification.new do |spec|
 
   # Uncomment to register a new dependency of your gem
   # spec.add_dependency "example-gem", "~> 1.0"
-  spec.add_dependency "jekyll", ">= 3.0"
   spec.add_dependency "activerecord", "~> 7.1"
+  spec.add_dependency "faraday", "~> 2.9"
+  spec.add_dependency "jekyll", ">= 3.0"
   spec.add_dependency "sqlite3", "~> 1.4"
   spec.add_dependency "sqlite-vss", "~> 0.1.2"
   spec.add_dependency "zeitwerk", "~> 2.6"
-  spec.add_dependency "debug"
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
