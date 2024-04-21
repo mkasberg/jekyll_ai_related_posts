@@ -2,6 +2,8 @@ require 'faraday'
 
 module JekyllAiRelatedPosts
   class OpenAiEmbeddings
+    DIMENSIONS = 1536
+
     def initialize(api_key, connection: nil)
       if connection.nil?
         @connection = Faraday.new(url: 'https://api.openai.com') do |builder|
@@ -23,7 +25,13 @@ module JekyllAiRelatedPosts
         }
       end
 
+
       res.body['data'].first['embedding']
+    rescue Faraday::Error => e
+      Jekyll.logger.error 'Error response from OpanAI API!'
+      Jekyll.logger.error e.inspect
+
+      raise
     end
   end
 end

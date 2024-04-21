@@ -2,19 +2,18 @@ require 'active_record'
 require 'sqlite3'
 require 'sqlite_vss'
 require 'jekyll'
-require 'debug'
+require 'json'
 
 module JekyllAiRelatedPosts
   class Generator < Jekyll::Generator
-    DIMENSIONS = 1536
 
     def generate(site)
       @site = site
-      
+
       Jekyll.logger.info '[ai_related_posts] Generating related posts...'
-      puts @site.config['ai_related_posts']['openai_api_key']
-      #OpenAiEmbeddings.new(@site.config['ai_related_posts']['openai_api_key'])
       setup_database
+
+      @embeddings_fetcher = OpenAiEmbeddings.new(@site.config['ai_related_posts']['openai_api_key'])
 
       @site.posts.docs.each do |p|
         save_embeddings(p)
@@ -30,16 +29,17 @@ module JekyllAiRelatedPosts
     def save_embeddings(post)
       existing = Models::Post.find_by(relative_path: post.relative_path)
       if existing.nil?
-        Models::Post.create!(relative_path: post.relative_path, embedding: embedding_for(post))
+        Models::Post.create!(relative_path: post.relative_path, embedding: embedding_for(post).to_json)
       end
     end
 
     def find_related(post)
+      # TODO
       post.data['ai_related_posts'] = @site.posts.docs.first(3)
     end
 
     def embedding_for(post)
-      Jekyll.logger.debug "[ai_related_posts] Fetching embeddings for #{post.relative_path}"
+      Jekyll.logger.info "[ai_related_posts] Fetching embeddings for #{post.relative_path}"
       input = "Title: #{post.data['title']}"
       unless post.data['categories'].empty?
         input += "; Categories: #{post.data['categories'].join(', ')}"
@@ -48,8 +48,7 @@ module JekyllAiRelatedPosts
         input += "; Tags: #{post.data['tags'].join(', ')}"
       end
 
-
-      input
+      @embeddings_fetcher.embedding_for(input)
     end
     
     def setup_database
@@ -76,7 +75,7 @@ module JekyllAiRelatedPosts
 
       create_vss_posts = <<-SQL
         CREATE VIRTUAL TABLE IF NOT EXISTS vss_posts using vss0(
-          post_embedding(DIMENSIONS)
+          post_embedding(#{OpenAiEmbeddings::DIMENSIONS})
         );
       SQL
       ActiveRecord::Base.connection.execute(create_vss_posts)
