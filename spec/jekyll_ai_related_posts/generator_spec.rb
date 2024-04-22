@@ -26,4 +26,26 @@ RSpec.describe JekyllAiRelatedPosts::Generator do
     expect(wifi_upgrades).to include('1:::Analyzing Static Website Logs with AWStats')
     expect(wifi_upgrades).to include('2:::Catching Mew: A Playable Game Boy Quote')
   end
+
+  it 'regenerates when posts are edited' do
+    # Create the cache
+    site.process
+
+    contents = File.read('spec/source/_posts/2023-12-22-home-wifi-upgrades-adding-an-access-point-with-wired-backhaul.md')
+    contents.gsub!(/title:.+/, 'title: How to Catch Pokemon')
+    File.open('spec/source/_posts/2023-12-22-home-wifi-upgrades-adding-an-access-point-with-wired-backhaul.md', 'w') do |file|
+      file.write(contents)
+    end
+
+    expect_any_instance_of(MockEmbeddings)
+      .to receive(:embedding_for)
+      .with('Title: How to Catch Pokemon; Tags: Technology')
+      .and_call_original
+    site.process
+  ensure
+    contents.gsub!(/title:.+/, 'title: "Home WiFi Upgrades: Adding an Access Point with Wired Backhaul"')
+    File.open('spec/source/_posts/2023-12-22-home-wifi-upgrades-adding-an-access-point-with-wired-backhaul.md', 'w') do |file|
+      file.write(contents)
+    end
+  end
 end

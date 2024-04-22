@@ -16,7 +16,7 @@ module JekyllAiRelatedPosts
       @embeddings_fetcher = new_fetcher
 
       @site.posts.docs.each do |p|
-        save_embeddings(p)
+      ensure_embedding_cached(p)
       end
 
       @indexed_posts = {}
@@ -40,10 +40,23 @@ module JekyllAiRelatedPosts
       end
     end
 
-    def save_embeddings(post)
+    def ensure_embedding_cached(post)
       existing = Models::Post.find_by(relative_path: post.relative_path)
+
+      # Clear cache if post has been updated
+      if !existing.nil? && existing.embedding_text != embedding_text(post)
+        sql = 'DELETE FROM vss_posts WHERE rowid = (SELECT rowid FROM posts WHERE relative_path = :relative_path);'
+        ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([sql, relative_path: post.relative_path]))
+        existing.destroy!
+        existing = nil
+      end
+
       if existing.nil?
-        Models::Post.create!(relative_path: post.relative_path, embedding: embedding_for(post).to_json)
+        Models::Post.create!(
+          relative_path: post.relative_path,
+          embedding_text: embedding_text(post),
+          embedding: embedding_for(post).to_json
+        )
 
         sql = <<-SQL
           INSERT INTO vss_posts (rowid, post_embedding)
@@ -85,15 +98,21 @@ module JekyllAiRelatedPosts
       post.data['ai_related_posts'] = related_posts
     end
 
-    def embedding_for(post)
-      Jekyll.logger.info "[ai_related_posts] Fetching embedding for #{post.relative_path}"
-      input = "Title: #{post.data['title']}"
+    def embedding_text(post)
+      text = "Title: #{post.data['title']}"
       unless post.data['categories'].empty?
-        input += "; Categories: #{post.data['categories'].join(', ')}"
+        text += "; Categories: #{post.data['categories'].join(', ')}"
       end
       unless post.data['tags'].empty?
-        input += "; Tags: #{post.data['tags'].join(', ')}"
+        text += "; Tags: #{post.data['tags'].join(', ')}"
       end
+
+      text
+    end
+
+    def embedding_for(post)
+      Jekyll.logger.info "[ai_related_posts] Fetching embedding for #{post.relative_path}"
+      input = embedding_text(post)
 
       @embeddings_fetcher.embedding_for(input)
     end
@@ -115,6 +134,7 @@ module JekyllAiRelatedPosts
       create_posts = <<-SQL
         CREATE TABLE IF NOT EXISTS posts(
           relative_path TEXT PRIMARY KEY,
+          embedding_text TEXT,
           embedding TEXT
         );
       SQL
