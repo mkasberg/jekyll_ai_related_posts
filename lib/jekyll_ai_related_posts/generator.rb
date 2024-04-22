@@ -120,7 +120,7 @@ module JekyllAiRelatedPosts
     def setup_database
       ActiveRecord::Base.establish_connection(
         adapter: 'sqlite3',
-        database: '.ai_related_posts_cache.sqlite3' # Path to your SQLite3 database file
+        database: @site.in_source_dir('.ai_related_posts_cache.sqlite3')
       )
       # We don't need WAL mode for this.
       ActiveRecord::Base.connection.execute('PRAGMA journal_mode=DELETE;')

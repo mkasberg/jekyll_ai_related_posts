@@ -16,7 +16,8 @@ RSpec.describe JekyllAiRelatedPosts::Generator do
   end
 
   before(:each) do
-    File.delete('.ai_related_posts_cache.sqlite3')
+    File.delete(site.in_source_dir('.ai_related_posts_cache.sqlite3'))
+  rescue Errno::ENOENT
   end
 
   it 'generates related posts' do
