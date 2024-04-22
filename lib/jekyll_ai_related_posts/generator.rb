@@ -19,6 +19,13 @@ module JekyllAiRelatedPosts
         save_embeddings(p)
       end
 
+      #insert_vss_rows
+
+      @indexed_posts = {}
+      site.posts.docs.each do |p|
+        @indexed_posts[p.relative_path] = p
+      end
+
       @site.posts.docs.each do |p|
         find_related(p)
       end
@@ -33,9 +40,43 @@ module JekyllAiRelatedPosts
       end
     end
 
+    def insert_vss_rows
+      ActiveRecord::Base.connection.execute <<-SQL
+        INSERT INTO vss_posts (rowid, post_embedding)
+          select rowid, embedding from posts;
+      SQL
+    end
+
     def find_related(post)
-      # TODO
-      post.data['ai_related_posts'] = @site.posts.docs.first(3)
+      sql = <<-SQL
+        SELECT rowid, distance
+        FROM vss_posts
+        WHERE vss_search(
+          post_embedding,
+          (select embedding from posts where relative_path = :relative_path)
+        )
+        LIMIT 10000;
+      SQL
+
+      results = ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([sql, relative_path: post.relative_path]))
+      rowids = results.sort_by { |r| r['distance'] }.first(3).map { |r| r['rowid'] }
+
+      # posts = ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql(['select rowid, relative_path from posts where ']))
+      # posts_by_rowid = {}
+      # posts.each do |post|
+      #   posts_by_rowid[post.rowid] = post
+      # end
+      posts_by_rowid = {}
+      rowids.each do |rowid|
+        posts_by_rowid[rowid] = Models::Post.select(:relative_path).find_by(rowid: rowid)
+      end
+
+      related_posts = rowids.map do |rowid|
+        relative_path = posts_by_rowid[rowid]['relative_path']
+        @indexed_posts[relative_path]
+      end
+
+      post.data['ai_related_posts'] = related_posts
     end
 
     def embedding_for(post)
