@@ -37,15 +37,21 @@ module JekyllAiRelatedPosts
       existing = Models::Post.find_by(relative_path: post.relative_path)
       if existing.nil?
         Models::Post.create!(relative_path: post.relative_path, embedding: embedding_for(post).to_json)
+
+        sql = <<-SQL
+          INSERT INTO vss_posts (rowid, post_embedding)
+            SELECT rowid, embedding FROM posts WHERE relative_path = :relative_path;
+        SQL
+        ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([sql, relative_path: post.relative_path]))
       end
     end
 
-    def insert_vss_rows
-      ActiveRecord::Base.connection.execute <<-SQL
-        INSERT INTO vss_posts (rowid, post_embedding)
-          select rowid, embedding from posts;
-      SQL
-    end
+    # def insert_vss_rows
+    #   ActiveRecord::Base.connection.execute <<-SQL
+    #     INSERT INTO vss_posts (rowid, post_embedding)
+    #       select rowid, embedding from posts;
+    #   SQL
+    # end
 
     def find_related(post)
       sql = <<-SQL
@@ -61,13 +67,12 @@ module JekyllAiRelatedPosts
       results = ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([sql, relative_path: post.relative_path]))
       rowids = results.sort_by { |r| r['distance'] }.first(3).map { |r| r['rowid'] }
 
-      # posts = ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql(['select rowid, relative_path from posts where ']))
-      # posts_by_rowid = {}
-      # posts.each do |post|
-      #   posts_by_rowid[post.rowid] = post
-      # end
       posts_by_rowid = {}
       rowids.each do |rowid|
+        # This *is* an N+1 query, but:
+        #  - N+1 penalty is way less with SQLite
+        #  - N is relatively small (it's Jekyll post count)
+        #  - This is an easy way to work around rowid not being a real column that ActiveRecord knows about.
         posts_by_rowid[rowid] = Models::Post.select(:relative_path).find_by(rowid: rowid)
       end
 
@@ -80,7 +85,7 @@ module JekyllAiRelatedPosts
     end
 
     def embedding_for(post)
-      Jekyll.logger.info "[ai_related_posts] Fetching embeddings for #{post.relative_path}"
+      Jekyll.logger.info "[ai_related_posts] Fetching embedding for #{post.relative_path}"
       input = "Title: #{post.data['title']}"
       unless post.data['categories'].empty?
         input += "; Categories: #{post.data['categories'].join(', ')}"
