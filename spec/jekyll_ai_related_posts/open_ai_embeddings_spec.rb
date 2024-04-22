@@ -44,6 +44,6 @@ RSpec.describe JekyllAiRelatedPosts::OpenAiEmbeddings do
       ]
     end
 
-    expect { subject.embedding_for('My test') }.to raise_error Faraday::Error
+    expect { capture_output { subject.embedding_for('My test') } }.to raise_error Faraday::Error
   end
 end

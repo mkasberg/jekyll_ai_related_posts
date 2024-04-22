@@ -9,3 +9,9 @@
 
 # rspec failure tracking
 .rspec_status
+
+# SQLite DB created by testing
+.ai_related_posts_cache.sqlite3
+
+# Ouptut created during testing
+/spec/dest/

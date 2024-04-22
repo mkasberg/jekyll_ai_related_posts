@@ -13,7 +13,7 @@ module JekyllAiRelatedPosts
       Jekyll.logger.info '[ai_related_posts] Generating related posts...'
       setup_database
 
-      @embeddings_fetcher = OpenAiEmbeddings.new(@site.config['ai_related_posts']['openai_api_key'])
+      @embeddings_fetcher = new_fetcher
 
       @site.posts.docs.each do |p|
         save_embeddings(p)
@@ -32,6 +32,15 @@ module JekyllAiRelatedPosts
     end
 
     private
+
+    def new_fetcher
+      case @site.config['ai_related_posts']['embeddings_source']
+      when 'mock'
+        MockEmbeddings.new
+      else
+        OpenAiEmbeddings.new(@site.config['ai_related_posts']['openai_api_key'])
+      end
+    end
 
     def save_embeddings(post)
       existing = Models::Post.find_by(relative_path: post.relative_path)
