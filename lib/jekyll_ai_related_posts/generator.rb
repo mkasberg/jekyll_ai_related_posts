@@ -65,7 +65,8 @@ module JekyllAiRelatedPosts
       SQL
 
       results = ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([sql, relative_path: post.relative_path]))
-      rowids = results.sort_by { |r| r['distance'] }.first(3).map { |r| r['rowid'] }
+      # The first result is the post itself, with a distance of 0.
+      rowids = results.sort_by { |r| r['distance'] }.drop(1).first(3).map { |r| r['rowid'] }
 
       posts_by_rowid = {}
       rowids.each do |rowid|
