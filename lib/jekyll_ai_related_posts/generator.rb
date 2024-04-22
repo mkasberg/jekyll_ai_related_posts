@@ -19,8 +19,6 @@ module JekyllAiRelatedPosts
         save_embeddings(p)
       end
 
-      #insert_vss_rows
-
       @indexed_posts = {}
       site.posts.docs.each do |p|
         @indexed_posts[p.relative_path] = p
@@ -54,13 +52,6 @@ module JekyllAiRelatedPosts
         ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([sql, relative_path: post.relative_path]))
       end
     end
-
-    # def insert_vss_rows
-    #   ActiveRecord::Base.connection.execute <<-SQL
-    #     INSERT INTO vss_posts (rowid, post_embedding)
-    #       select rowid, embedding from posts;
-    #   SQL
-    # end
 
     def find_related(post)
       sql = <<-SQL
