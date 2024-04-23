@@ -18,8 +18,7 @@ posts with the accuracy of OpenAI's models (or any other LLM, for that matter).
 
 Jekyll AI Related Posts is a [Jekyll
 plugin](https://jekyllrb.com/docs/plugins/installation/). It can be installed
-using any plugin installation method. The recommended way is to add
-`jekyll_ai_related_posts` to your Gemfile.
+using any Jekyll plugin installation method.
 
 ## Configuration
 
