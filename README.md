@@ -45,18 +45,44 @@ ai_related_posts:
 
 ## Usage
 
-TODO: Write usage instructions here
+When the plugin is installed and configured, it will populate an
+`ai_related_posts` key in the post data for all posts. Here's an example of how
+to use it:
+
+```liquid
+<h2>Related Posts</h2>
+<ul>
+  {% for post in page.ai_related_posts limit:3 %}
+    <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+  {% endfor %}
+</ul>
+```
+
+### Upgrading from Built-In Related Posts
+
+If you're already using Jekyll's built-in `site.related_posts` and you want to
+upgrade to AI related posts:
+
+- Install the plugin.
+- Replace `site.related_posts` with `page.ai_related_posts` in your templates.
+- If you were using LSI, stop. It's no longer necessary. Don't pass the `--lsi`
+  option to the `jekyll` command. You can remove the `classifier-reborn` gem and
+  its dependencies (Numo).
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies. Then, run
+`rake spec` to run the tests. You can also run `bin/console` for an interactive
+prompt that will allow you to experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+To install this gem onto your local machine, run `bundle exec rake install`. To
+release a new version, update the version number in `version.rb`, and then run
+`bundle exec rake release`, which will create a git tag for the version, push
+git commits and the created tag, and push the `.gem` file to
+[rubygems.org](https://rubygems.org).
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/jekyll_ai_related_posts.
+Bug reports and pull requests are welcome on GitHub at
+https://github.com/mkasberg/jekyll_ai_related_posts.
 
-## License
-
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
