@@ -12,17 +12,17 @@ module JekyllAiRelatedPosts
       @site = site
       setup_database
 
+      @indexed_posts = {}
+      site.posts.docs.each do |p|
+        @indexed_posts[p.relative_path] = p
+      end
+
       if fetch_enabled?
         Jekyll.logger.info "[ai_related_posts] Generating related posts..."
         @embeddings_fetcher = new_fetcher
 
         @site.posts.docs.each do |p|
           ensure_embedding_cached(p)
-        end
-
-        @indexed_posts = {}
-        site.posts.docs.each do |p|
-          @indexed_posts[p.relative_path] = p
         end
 
         @site.posts.docs.each do |p|
