@@ -64,6 +64,20 @@ to use it:
 </ul>
 ```
 
+### First Run
+
+The first time the plugin runs, it will fetch embeddings for all your posts.
+Based on some light testing, this took me 0.5 sec per post, or about 50 sec for
+a blog with 100 posts. All subsequent runs will be faster since embeddings will
+be cached.
+
+### Cost
+
+The API costs to use this plugin with OpenAI's API are minimal. I ran this
+plugin for all 84 posts on [mikekasberg.com](https://www.mikekasberg.com) for
+$0.00 in API fees (1,277 tokens on the text-embedding-3-small model). (Your
+results may vary, but should remain inexpensive.)
+
 ### Upgrading from Built-In Related Posts
 
 If you're already using Jekyll's built-in `site.related_posts` and you want to
@@ -75,6 +89,17 @@ upgrade to AI related posts:
   option to the `jekyll` command. You can remove the `classifier-reborn` gem and
   its dependencies (Numo).
 
+### Cache File (.ai_related_posts_cache.sqlite3)
+
+This plugin will cache embeddings in `.ai_related_posts_cache.sqlite3` in your
+Jekyll source root (typically the root of your project directory). The file
+itself is a SQLite database file. For most cases, I'd recommend adding this file
+to your `.gitignore` since it's a binary cache file. However, you _may_ choose
+to check it in to git if, for example, you want to share cached embeddings
+across many machines (and are willing to check in a binary file on the order of
+1-10Mb to do so). If the file is not present, it will be re-created and
+embeddings will be fetched from the API (which may result in higher API usage
+fees if done frequently).
 
 ## How It Works
 
@@ -95,10 +120,9 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run
 `rake spec` to run the tests. You can also run `bin/console` for an interactive
 prompt that will allow you to experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To
-release a new version, update the version number in `version.rb`, and then run
-`bundle exec rake release`, which will create a git tag for the version, push
-git commits and the created tag, and push the `.gem` file to
+To release a new version, update the version number in `version.rb`, and then
+run `bundle exec rake release`, which will create a git tag for the version,
+push git commits and the created tag, and push the `.gem` file to
 [rubygems.org](https://rubygems.org).
 
 ## Contributing
