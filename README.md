@@ -1,20 +1,27 @@
-# JekyllAiRelatedPosts
+# Jekyll AI Related Posts 🪄
 
-TODO: Delete this and the text below, and describe your gem
+Jekyll ships with functionality that populates
+[related_posts](https://jekyllrb.com/docs/variables/) with the ten most recent
+posts. If you install
+[classifier_reborn](https://jekyll.github.io/classifier-reborn/) and use the
+`--lsi` option, Jekyll will populate `related_posts` using latent semantic
+indexing. 
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/jekyll_ai_related_posts`. To experiment with that code, run `bin/console` for an interactive prompt.
+**Using AI is a much better approach.** Latent semantic indexing seems
+promising, but in practice requires libraries like Numo or GSL that are tricky
+to install, and still produces mediocre results. In contrast, OpenAI offers an
+embeddings API that allows us to easily get the embedding vector (in one of
+OpenAI's models) of some text. We can use these vectors to compute related
+posts with the accuracy of OpenAI's models (or any other LLM, for that matter).
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+Jekyll AI Related Posts is a [Jekyll
+plugin](https://jekyllrb.com/docs/plugins/installation/). It can be installed
+using any plugin installation method. The recommended way is to add
+`jekyll_ai_related_posts` to your Gemfile.
 
-Install the gem and add to the application's Gemfile by executing:
-
-    $ bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
-
-If bundler is not being used to manage dependencies, install the gem by executing:
-
-    $ gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+## Configuration
 
 ## Usage
 
