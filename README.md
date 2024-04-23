@@ -23,6 +23,26 @@ using any plugin installation method. The recommended way is to add
 
 ## Configuration
 
+All config for this plugin sits under a top-level `ai_related_posts` key.
+
+The only required config is `openai_api_key` -- we need to authenticate to the
+API to fetch embedding vectors.
+
+- **openai_api_key** Your OpenAI API key, used to fetch embeddings.
+- **fetch_enabled** (optional, default `true`). If true, fetch embeddings. If
+  false, don't fetch embeddings. If this is a string (like `prod`), fetch
+  embeddings only when the `JEKYLL_ENV` environment variable is equal to the
+  string. (This is useful if you want to reduce API costs by only fetching
+  embeddings on production builds.)
+
+### Example Config
+
+```yaml
+ai_related_posts:
+  openai_api_key: abc-123
+  fetch_enabled: prod
+```
+
 ## Usage
 
 TODO: Write usage instructions here
