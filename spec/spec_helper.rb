@@ -5,12 +5,12 @@ require "jekyll_ai_related_posts"
 class MockEmbeddings
   def embedding_for(text)
     file =
-      if text.include?('Mew')
-        'catching_mew_embedding.json'
-      elsif text.include?('AWStats')
-        'awstats_embedding.json'
+      if text.include?("Mew")
+        "catching_mew_embedding.json"
+      elsif text.include?("AWStats")
+        "awstats_embedding.json"
       else
-        'home_wifi_embedding.json'
+        "home_wifi_embedding.json"
       end
 
     JSON.parse(File.read("spec/fixtures/#{file}"))
@@ -41,7 +41,7 @@ module DirectoryHelpers
 
   def temp_dir(*subdirs)
     if Jekyll::Utils::Platforms.vanilla_windows?
-      drive = Dir.pwd.sub(%r!^([^/]+).*!, '\1')
+      drive = Dir.pwd.sub(%r{^([^/]+).*}, '\1')
       temp_root = File.join(drive, "tmp")
     else
       temp_root = "/tmp"
@@ -60,8 +60,8 @@ module JekyllHelpers
     site = fixture_site(
       "collections" => {
         "methods" => {
-          "output" => true,
-        },
+          "output" => true
+        }
       }
     )
     site.read

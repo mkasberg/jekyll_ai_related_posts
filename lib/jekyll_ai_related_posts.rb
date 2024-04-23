@@ -7,7 +7,7 @@ loader = Zeitwerk::Loader.for_gem
 loader.setup
 
 module JekyllAiRelatedPosts
-  GEM_ROOT = File.expand_path('..', __dir__)
+  GEM_ROOT = File.expand_path("..", __dir__)
 
   class Error < StandardError; end
 end

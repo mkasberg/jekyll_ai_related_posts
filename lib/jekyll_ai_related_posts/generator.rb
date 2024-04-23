@@ -1,18 +1,19 @@
-require 'active_record'
-require 'sqlite3'
-require 'sqlite_vss'
-require 'jekyll'
-require 'json'
+# frozen_string_literal: true
+
+require "active_record"
+require "sqlite3"
+require "sqlite_vss"
+require "jekyll"
+require "json"
 
 module JekyllAiRelatedPosts
   class Generator < Jekyll::Generator
-
     def generate(site)
       @site = site
       setup_database
 
       if fetch_enabled?
-        Jekyll.logger.info '[ai_related_posts] Generating related posts...'
+        Jekyll.logger.info "[ai_related_posts] Generating related posts..."
         @embeddings_fetcher = new_fetcher
 
         @site.posts.docs.each do |p|
@@ -28,7 +29,7 @@ module JekyllAiRelatedPosts
           find_related(p)
         end
       else
-        Jekyll.logger.info '[ai_related_posts] Using cached related posts data...'
+        Jekyll.logger.info "[ai_related_posts] Using cached related posts data..."
 
         @site.posts.docs.each do |p|
           fallback_generate_related(p)
@@ -40,30 +41,30 @@ module JekyllAiRelatedPosts
 
     def fetch_enabled?
       enabled = true
-      if @site.config['ai_related_posts']['fetch_enabled'].is_a? String
-        enabled = ENV['JEKYLL_ENV'] == @site.config['ai_related_posts']['fetch_enabled']
-      elsif [true, false].include? @site.config['ai_related_posts']['fetch_enabled']
-        enabled = @site.config['ai_related_posts']['fetch_enabled']
+      if @site.config["ai_related_posts"]["fetch_enabled"].is_a? String
+        enabled = ENV["JEKYLL_ENV"] == @site.config["ai_related_posts"]["fetch_enabled"]
+      elsif [true, false].include? @site.config["ai_related_posts"]["fetch_enabled"]
+        enabled = @site.config["ai_related_posts"]["fetch_enabled"]
       end
 
-      enabled 
+      enabled
     end
 
     def fallback_generate_related(post)
       existing = Models::Post.find_by(relative_path: post.relative_path)
       if existing.nil?
-        post.data['ai_related_posts'] = post.related_posts
+        post.data["ai_related_posts"] = post.related_posts
       else
         find_related(post)
       end
     end
 
     def new_fetcher
-      case @site.config['ai_related_posts']['embeddings_source']
-      when 'mock'
+      case @site.config["ai_related_posts"]["embeddings_source"]
+      when "mock"
         MockEmbeddings.new
       else
-        OpenAiEmbeddings.new(@site.config['ai_related_posts']['openai_api_key'])
+        OpenAiEmbeddings.new(@site.config["ai_related_posts"]["openai_api_key"])
       end
     end
 
@@ -72,25 +73,27 @@ module JekyllAiRelatedPosts
 
       # Clear cache if post has been updated
       if !existing.nil? && existing.embedding_text != embedding_text(post)
-        sql = 'DELETE FROM vss_posts WHERE rowid = (SELECT rowid FROM posts WHERE relative_path = :relative_path);'
-        ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([sql, relative_path: post.relative_path]))
+        sql = "DELETE FROM vss_posts WHERE rowid = (SELECT rowid FROM posts WHERE relative_path = :relative_path);"
+        ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([sql,
+                                                                               { relative_path: post.relative_path }]))
         existing.destroy!
         existing = nil
       end
 
-      if existing.nil?
-        Models::Post.create!(
-          relative_path: post.relative_path,
-          embedding_text: embedding_text(post),
-          embedding: embedding_for(post).to_json
-        )
+      return unless existing.nil?
 
-        sql = <<-SQL
+      Models::Post.create!(
+        relative_path: post.relative_path,
+        embedding_text: embedding_text(post),
+        embedding: embedding_for(post).to_json
+      )
+
+      sql = <<-SQL
           INSERT INTO vss_posts (rowid, post_embedding)
             SELECT rowid, embedding FROM posts WHERE relative_path = :relative_path;
-        SQL
-        ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([sql, relative_path: post.relative_path]))
-      end
+      SQL
+      ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([sql,
+                                                                             { relative_path: post.relative_path }]))
     end
 
     def find_related(post)
@@ -104,9 +107,11 @@ module JekyllAiRelatedPosts
         LIMIT 10000;
       SQL
 
-      results = ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([sql, relative_path: post.relative_path]))
+      results = ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([sql, {
+                                                                                        relative_path: post.relative_path
+                                                                                      }]))
       # The first result is the post itself, with a distance of 0.
-      rowids = results.sort_by { |r| r['distance'] }.drop(1).first(3).map { |r| r['rowid'] }
+      rowids = results.sort_by { |r| r["distance"] }.drop(1).first(3).map { |r| r["rowid"] }
 
       posts_by_rowid = {}
       rowids.each do |rowid|
@@ -118,21 +123,17 @@ module JekyllAiRelatedPosts
       end
 
       related_posts = rowids.map do |rowid|
-        relative_path = posts_by_rowid[rowid]['relative_path']
+        relative_path = posts_by_rowid[rowid]["relative_path"]
         @indexed_posts[relative_path]
       end
 
-      post.data['ai_related_posts'] = related_posts
+      post.data["ai_related_posts"] = related_posts
     end
 
     def embedding_text(post)
-      text = "Title: #{post.data['title']}"
-      unless post.data['categories'].empty?
-        text += "; Categories: #{post.data['categories'].join(', ')}"
-      end
-      unless post.data['tags'].empty?
-        text += "; Tags: #{post.data['tags'].join(', ')}"
-      end
+      text = "Title: #{post.data["title"]}"
+      text += "; Categories: #{post.data["categories"].join(", ")}" unless post.data["categories"].empty?
+      text += "; Tags: #{post.data["tags"].join(", ")}" unless post.data["tags"].empty?
 
       text
     end
@@ -143,14 +144,14 @@ module JekyllAiRelatedPosts
 
       @embeddings_fetcher.embedding_for(input)
     end
-    
+
     def setup_database
       ActiveRecord::Base.establish_connection(
-        adapter: 'sqlite3',
-        database: @site.in_source_dir('.ai_related_posts_cache.sqlite3')
+        adapter: "sqlite3",
+        database: @site.in_source_dir(".ai_related_posts_cache.sqlite3")
       )
       # We don't need WAL mode for this.
-      ActiveRecord::Base.connection.execute('PRAGMA journal_mode=DELETE;')
+      ActiveRecord::Base.connection.execute("PRAGMA journal_mode=DELETE;")
 
       # Enable sqlite-vss vector extension
       db = ActiveRecord::Base.connection.raw_connection
