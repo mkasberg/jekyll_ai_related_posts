@@ -27,6 +27,16 @@ plugins:
   - jekyll_ai_related_posts
 ```
 
+You should also ignore the cache files that this plugin generates. (This will
+help avoid a regeneration loop when using `jekyll serve`.)
+
+```yaml
+exclude:
+  - .ai_related_posts_cache.sqlite3
+  - .ai_related_posts_cache.sqlite3-journal
+```
+
+
 ## Configuration
 
 All config for this plugin sits under a top-level `ai_related_posts` key.
