@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    jekyll_ai_related_posts (0.1.0)
-      activerecord (~> 7.1)
+    jekyll_ai_related_posts (0.1.1)
+      activerecord (~> 7.0)
       faraday (~> 2.9)
       jekyll (>= 3.0)
       sqlite-vss (~> 0.1.2)
