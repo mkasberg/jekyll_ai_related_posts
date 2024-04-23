@@ -1,5 +1,7 @@
 # Jekyll AI Related Posts 🪄
 
+Rubygems: [jekyll_ai_related_posts](https://rubygems.org/gems/jekyll_ai_related_posts)
+
 Jekyll ships with functionality that populates
 [related_posts](https://jekyllrb.com/docs/variables/) with the ten most recent
 posts. If you install
@@ -18,7 +20,12 @@ posts with the accuracy of OpenAI's models (or any other LLM, for that matter).
 
 Jekyll AI Related Posts is a [Jekyll
 plugin](https://jekyllrb.com/docs/plugins/installation/). It can be installed
-using any Jekyll plugin installation method.
+using any Jekyll plugin installation method. For example, in your `_config.yml`:
+
+```yaml
+plugins:
+  - jekyll_ai_related_posts
+```
 
 ## Configuration
 
