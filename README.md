@@ -38,7 +38,7 @@ API to fetch embedding vectors.
 
 ```yaml
 ai_related_posts:
-  openai_api_key: abc-123
+  openai_api_key: sk-proj-abc123
   fetch_enabled: prod
 ```
 
