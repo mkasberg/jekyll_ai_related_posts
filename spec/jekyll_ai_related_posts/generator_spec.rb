@@ -49,4 +49,22 @@ RSpec.describe JekyllAiRelatedPosts::Generator do
       file.write(contents)
     end
   end
+
+  context 'fetch disabled' do
+    let(:config_overrides) do
+      {
+        'ai_related_posts' => {
+          'openai_api_key' => 'my_key',
+          'embeddings_source' => 'mock',
+          'fetch_enabled' => false
+        },
+      }
+    end
+
+    it 'does not fetch embeddings from the API' do
+      expect_any_instance_of(MockEmbeddings).not_to receive(:embedding_for)
+
+      site.process
+    end
+  end
 end

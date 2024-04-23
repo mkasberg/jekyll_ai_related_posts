@@ -9,27 +9,54 @@ module JekyllAiRelatedPosts
 
     def generate(site)
       @site = site
-
-      Jekyll.logger.info '[ai_related_posts] Generating related posts...'
       setup_database
 
-      @embeddings_fetcher = new_fetcher
+      if fetch_enabled?
+        Jekyll.logger.info '[ai_related_posts] Generating related posts...'
+        @embeddings_fetcher = new_fetcher
 
-      @site.posts.docs.each do |p|
-      ensure_embedding_cached(p)
-      end
+        @site.posts.docs.each do |p|
+          ensure_embedding_cached(p)
+        end
 
-      @indexed_posts = {}
-      site.posts.docs.each do |p|
-        @indexed_posts[p.relative_path] = p
-      end
+        @indexed_posts = {}
+        site.posts.docs.each do |p|
+          @indexed_posts[p.relative_path] = p
+        end
 
-      @site.posts.docs.each do |p|
-        find_related(p)
+        @site.posts.docs.each do |p|
+          find_related(p)
+        end
+      else
+        Jekyll.logger.info '[ai_related_posts] Using cached related posts data...'
+
+        @site.posts.docs.each do |p|
+          fallback_generate_related(p)
+        end
       end
     end
 
     private
+
+    def fetch_enabled?
+      enabled = true
+      if @site.config['ai_related_posts']['fetch_enabled'].is_a? String
+        enabled = ENV['JEKYLL_ENV'] == @site.config['ai_related_posts']['fetch_enabled']
+      elsif [true, false].include? @site.config['ai_related_posts']['fetch_enabled']
+        enabled = @site.config['ai_related_posts']['fetch_enabled']
+      end
+
+      enabled 
+    end
+
+    def fallback_generate_related(post)
+      existing = Models::Post.find_by(relative_path: post.relative_path)
+      if existing.nil?
+        post.data['ai_related_posts'] = post.related_posts
+      else
+        find_related(post)
+      end
+    end
 
     def new_fetcher
       case @site.config['ai_related_posts']['embeddings_source']
