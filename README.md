@@ -68,6 +68,20 @@ upgrade to AI related posts:
   option to the `jekyll` command. You can remove the `classifier-reborn` gem and
   its dependencies (Numo).
 
+
+## How It Works
+
+Jekyll AI Related Posts is implemented as a Jekyll Generator plugin. During the
+build process, the plugin will call the [OpenAI Embeddings
+API](https://platform.openai.com/docs/guides/embeddings) to fetch the vector
+embedding for a string containing the title, tags, and categories of your
+article. It's not necessary to use the full post text, in most cases the title
+and tags produce very accurate results because the LLM knows when topics are
+related even if they never use identical words. This is also why the LLM
+produces better results than LSI. These vector embeddings are cached in a SQLite
+database. To query for related posts, we query the cached vectors using the
+[sqlite-vss](https://github.com/asg017/sqlite-vss) plugin.
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run
