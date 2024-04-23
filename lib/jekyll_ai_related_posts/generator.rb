@@ -43,7 +43,7 @@ module JekyllAiRelatedPosts
       enabled = true
       if @site.config["ai_related_posts"]["fetch_enabled"].is_a? String
         enabled = ENV["JEKYLL_ENV"] == @site.config["ai_related_posts"]["fetch_enabled"]
-      elsif [true, false].include? @site.config["ai_related_posts"]["fetch_enabled"]
+      elsif [ true, false ].include? @site.config["ai_related_posts"]["fetch_enabled"]
         enabled = @site.config["ai_related_posts"]["fetch_enabled"]
       end
 
@@ -74,8 +74,8 @@ module JekyllAiRelatedPosts
       # Clear cache if post has been updated
       if !existing.nil? && existing.embedding_text != embedding_text(post)
         sql = "DELETE FROM vss_posts WHERE rowid = (SELECT rowid FROM posts WHERE relative_path = :relative_path);"
-        ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([sql,
-                                                                               { relative_path: post.relative_path }]))
+        ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([ sql,
+                                                                               { relative_path: post.relative_path } ]))
         existing.destroy!
         existing = nil
       end
@@ -92,8 +92,8 @@ module JekyllAiRelatedPosts
           INSERT INTO vss_posts (rowid, post_embedding)
             SELECT rowid, embedding FROM posts WHERE relative_path = :relative_path;
       SQL
-      ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([sql,
-                                                                             { relative_path: post.relative_path }]))
+      ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([ sql,
+                                                                             { relative_path: post.relative_path } ]))
     end
 
     def find_related(post)
@@ -107,9 +107,9 @@ module JekyllAiRelatedPosts
         LIMIT 10000;
       SQL
 
-      results = ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([sql, {
+      results = ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([ sql, {
                                                                                         relative_path: post.relative_path
-                                                                                      }]))
+                                                                                      } ]))
       # The first result is the post itself, with a distance of 0.
       rowids = results.sort_by { |r| r["distance"] }.drop(1).first(3).map { |r| r["rowid"] }
 

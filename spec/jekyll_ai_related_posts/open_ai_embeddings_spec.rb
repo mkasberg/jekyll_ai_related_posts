@@ -22,11 +22,11 @@ RSpec.describe JekyllAiRelatedPosts::OpenAiEmbeddings do
       [
         200,
         { "Content-Type" => "application/json" },
-        { data: [{ embedding: [0.01, 0.02] }] }.to_json
+        { data: [ { embedding: [ 0.01, 0.02 ] } ] }.to_json
       ]
     end
 
-    expect(subject.embedding_for("My test")).to eq([0.01, 0.02])
+    expect(subject.embedding_for("My test")).to eq([ 0.01, 0.02 ])
   end
 
   it "handles an error response" do

@@ -5,8 +5,8 @@ require_relative "lib/jekyll_ai_related_posts/version"
 Gem::Specification.new do |spec|
   spec.name = "jekyll_ai_related_posts"
   spec.version = JekyllAiRelatedPosts::VERSION
-  spec.authors = ["Mike Kasberg"]
-  spec.email = ["kasberg.mike@gmail.com"]
+  spec.authors = [ "Mike Kasberg" ]
+  spec.email = [ "kasberg.mike@gmail.com" ]
 
   spec.summary = "Populate ai_related_posts using Open AI embeddings"
   spec.description = "Populate ai_related_posts using Open AI embeddings"
@@ -30,7 +30,7 @@ Gem::Specification.new do |spec|
   end
   spec.bindir = "exe"
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
-  spec.require_paths = ["lib"]
+  spec.require_paths = [ "lib" ]
 
   # Uncomment to register a new dependency of your gem
   # spec.add_dependency "example-gem", "~> 1.0"

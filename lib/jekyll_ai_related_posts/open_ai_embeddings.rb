@@ -14,9 +14,9 @@ module JekyllAiRelatedPosts
                         builder.response :json
                         builder.response :raise_error
                       end
-                    else
+      else
                       connection
-                    end
+      end
     end
 
     def embedding_for(text)

@@ -68,7 +68,7 @@ module JekyllHelpers
     matching_doc = site.collections["methods"].docs.find do |doc|
       doc.relative_path == relative_path
     end
-    [site, matching_doc]
+    [ site, matching_doc ]
   end
 
   def fixture_site(overrides = {})
