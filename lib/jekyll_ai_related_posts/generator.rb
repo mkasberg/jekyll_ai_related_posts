@@ -111,7 +111,7 @@ module JekyllAiRelatedPosts
                                                                                         relative_path: post.relative_path
                                                                                       } ]))
       # The first result is the post itself, with a distance of 0.
-      rowids = results.sort_by { |r| r["distance"] }.drop(1).first(3).map { |r| r["rowid"] }
+      rowids = results.sort_by { |r| r["distance"] }.drop(1).first(10).map { |r| r["rowid"] }
 
       posts_by_rowid = {}
       rowids.each do |rowid|
