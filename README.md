@@ -81,6 +81,13 @@ Based on some light testing, this took me 0.5 sec per post, or about 50 sec for
 a blog with 100 posts. All subsequent runs will be faster since embeddings will
 be cached.
 
+### Performance
+
+On an example blog with ~100 posts, this plugin produces more accurate results
+than classifier-reborn (LSI) in about the same amount of time. See [this blog
+post](https://www.mikekasberg.com/blog/2024/04/23/better-related-posts-in-jekyll-using-ai.html)
+for details.
+
 ### Cost
 
 The API costs to use this plugin with OpenAI's API are minimal. I ran this
