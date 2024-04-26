@@ -16,6 +16,13 @@ embeddings API that allows us to easily get the embedding vector (in one of
 OpenAI's models) of some text. We can use these vectors to compute related
 posts with the accuracy of OpenAI's models (or any other LLM, for that matter).
 
+### Used in Production at
+
+- [MikeKasberg.com](https://www.mikekasberg.com)
+
+(Feel free to open a PR to add your website if you're using this gem in
+production!)
+
 ## Installation
 
 Jekyll AI Related Posts is a [Jekyll
