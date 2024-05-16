@@ -9,6 +9,8 @@ require "json"
 module JekyllAiRelatedPosts
   class Generator < Jekyll::Generator
     def generate(site)
+      Jekyll.logger.info "AI Related Posts:", "Generating related posts..."
+
       @site = site
       setup_database
 
@@ -18,7 +20,6 @@ module JekyllAiRelatedPosts
       end
 
       if fetch_enabled?
-        Jekyll.logger.info "[ai_related_posts] Generating related posts..."
         @embeddings_fetcher = new_fetcher
 
         @site.posts.docs.each do |p|
@@ -29,7 +30,7 @@ module JekyllAiRelatedPosts
           find_related(p)
         end
       else
-        Jekyll.logger.info "[ai_related_posts] Using cached related posts data..."
+        Jekyll.logger.info "AI Related Posts:", "Fetch disabled. Using cached related posts data."
 
         @site.posts.docs.each do |p|
           fallback_generate_related(p)
@@ -139,7 +140,7 @@ module JekyllAiRelatedPosts
     end
 
     def embedding_for(post)
-      Jekyll.logger.info "[ai_related_posts] Fetching embedding for #{post.relative_path}"
+      Jekyll.logger.info "AI Related Posts:", "Fetching embedding for #{post.relative_path}"
       input = embedding_text(post)
 
       @embeddings_fetcher.embedding_for(input)
@@ -175,7 +176,7 @@ module JekyllAiRelatedPosts
       SQL
       ActiveRecord::Base.connection.execute(create_vss_posts)
 
-      Jekyll.logger.debug("ai_related_posts db setup complete")
+      Jekyll.logger.debug "AI Related Posts:", "DB setup complete"
     end
   end
 end

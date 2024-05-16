@@ -29,8 +29,8 @@ module JekyllAiRelatedPosts
 
       res.body["data"].first["embedding"]
     rescue Faraday::Error => e
-      Jekyll.logger.error "Error response from OpanAI API!"
-      Jekyll.logger.error e.inspect
+      Jekyll.logger.error "AI Related Posts:", "Error response from OpenAI API!"
+      Jekyll.logger.error "AI Related Posts:", e.inspect
 
       raise
     end
