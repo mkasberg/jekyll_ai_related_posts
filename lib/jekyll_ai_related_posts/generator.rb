@@ -9,9 +9,13 @@ require "json"
 module JekyllAiRelatedPosts
   class Generator < Jekyll::Generator
     def generate(site)
-      Jekyll.logger.info "AI Related Posts:", "Generating related posts..."
+      Jekyll.logger.debug "AI Related Posts:", "Generating related posts..."
 
       @site = site
+      @stats = {
+        cache_hits: 0,
+        cache_misses: 0
+      }
       setup_database
 
       @indexed_posts = {}
@@ -29,13 +33,25 @@ module JekyllAiRelatedPosts
         @site.posts.docs.each do |p|
           find_related(p)
         end
+        Jekyll.logger.info "AI Related Posts:", "Found #{@stats[:cache_hits]} cached embeddings; fetched #{@stats[:cache_misses]}"
       else
         Jekyll.logger.info "AI Related Posts:", "Fetch disabled. Using cached related posts data."
 
         @site.posts.docs.each do |p|
           fallback_generate_related(p)
         end
+
+        case @stats[:cache_misses]
+        when 0
+          Jekyll.logger.info "AI Related Posts:", "Found #{@stats[:cache_hits]} cached embeddings; all embeddings cached"
+        when 1
+          Jekyll.logger.info "AI Related Posts:", "Found #{@stats[:cache_hits]} cached embeddings; skipped 1 fetch"
+        else
+          Jekyll.logger.info "AI Related Posts:", "Found #{@stats[:cache_hits]} cached embeddings; skipped #{@stats[:cache_misses]} fetches"
+        end
       end
+
+      Jekyll.logger.debug "AI Related Posts:", "Done generating related posts"
     end
 
     private
@@ -54,8 +70,14 @@ module JekyllAiRelatedPosts
     def fallback_generate_related(post)
       existing = Models::Post.find_by(relative_path: post.relative_path)
       if existing.nil?
+        @stats[:cache_misses] += 1
         post.data["ai_related_posts"] = post.related_posts
       else
+        if existing.embedding_text == embedding_text(post)
+          @stats[:cache_hits] += 1
+        else
+          @stats[:cache_misses] += 1
+        end
         find_related(post)
       end
     end
@@ -81,20 +103,25 @@ module JekyllAiRelatedPosts
         existing = nil
       end
 
-      return unless existing.nil?
+      if existing.nil?
+        @stats[:cache_misses] += 1
 
-      Models::Post.create!(
-        relative_path: post.relative_path,
-        embedding_text: embedding_text(post),
-        embedding: embedding_for(post).to_json
-      )
+        Models::Post.create!(
+          relative_path: post.relative_path,
+          embedding_text: embedding_text(post),
+          embedding: embedding_for(post).to_json
+        )
 
-      sql = <<-SQL
-          INSERT INTO vss_posts (rowid, post_embedding)
-            SELECT rowid, embedding FROM posts WHERE relative_path = :relative_path;
-      SQL
-      ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([ sql,
-                                                                             { relative_path: post.relative_path } ]))
+        sql = <<-SQL
+            INSERT INTO vss_posts (rowid, post_embedding)
+              SELECT rowid, embedding FROM posts WHERE relative_path = :relative_path;
+        SQL
+        ActiveRecord::Base.connection.execute(
+          ActiveRecord::Base.sanitize_sql([ sql, { relative_path: post.relative_path } ])
+        )
+      else
+        @stats[:cache_hits] += 1
+      end
     end
 
     def find_related(post)
@@ -108,9 +135,9 @@ module JekyllAiRelatedPosts
         LIMIT 10000;
       SQL
 
-      results = ActiveRecord::Base.connection.execute(ActiveRecord::Base.sanitize_sql([ sql, {
-                                                                                        relative_path: post.relative_path
-                                                                                      } ]))
+      results = ActiveRecord::Base.connection.execute(
+        ActiveRecord::Base.sanitize_sql([ sql, { relative_path: post.relative_path } ])
+      )
       # The first result is the post itself, with a distance of 0.
       rowids = results.sort_by { |r| r["distance"] }.drop(1).first(10).map { |r| r["rowid"] }
 
@@ -147,9 +174,16 @@ module JekyllAiRelatedPosts
     end
 
     def setup_database
+      db_path = @site.in_source_dir(".ai_related_posts_cache.sqlite3")
+      if File.exist?(db_path)
+        Jekyll.logger.debug "AI Related Posts:", "Found cache [.ai_related_posts_cache.sqlite3]"
+      else
+        Jekyll.logger.info "AI Related Posts:", "Creating cache [.ai_related_posts_cache.sqlite3]"
+      end
+
       ActiveRecord::Base.establish_connection(
         adapter: "sqlite3",
-        database: @site.in_source_dir(".ai_related_posts_cache.sqlite3")
+        database: db_path
       )
       # We don't need WAL mode for this.
       ActiveRecord::Base.connection.execute("PRAGMA journal_mode=DELETE;")
