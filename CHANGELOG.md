@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+## [0.1.4] - 2024-10-12
+
+- Better log messages (improved clarity about what's happening).
+
 ## [0.1.3] - 2024-05-15
 
 - Better (nicer to read) log messages.
