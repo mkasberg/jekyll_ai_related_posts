@@ -46,7 +46,8 @@ exclude:
 
 ## Configuration
 
-All config for this plugin sits under a top-level `ai_related_posts` key.
+All config for this plugin sits under a top-level `ai_related_posts` key in
+Jekyll's `_config.yml`.
 
 The only required config is `openai_api_key` -- we need to authenticate to the
 API to fetch embedding vectors.
