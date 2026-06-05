@@ -3,6 +3,10 @@
 require "jekyll_ai_related_posts"
 
 class MockEmbeddings
+  def dimensions
+    1536
+  end
+
   def embedding_for(text)
     file =
       if text.include?("Mew")
