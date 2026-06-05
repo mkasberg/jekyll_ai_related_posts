@@ -16,6 +16,8 @@ module JekyllAiRelatedPosts
         cache_hits: 0,
         cache_misses: 0
       }
+      @embeddings_fetcher = new_fetcher if fetch_enabled?
+
       setup_database
 
       @indexed_posts = {}
@@ -24,8 +26,6 @@ module JekyllAiRelatedPosts
       end
 
       if fetch_enabled?
-        @embeddings_fetcher = new_fetcher
-
         @site.posts.docs.each do |p|
           ensure_embedding_cached(p)
         end
@@ -87,7 +87,11 @@ module JekyllAiRelatedPosts
       when "mock"
         MockEmbeddings.new
       else
-        OpenAiEmbeddings.new(@site.config["ai_related_posts"]["openai_api_key"])
+        api_key = @site.config["ai_related_posts"]["api_key"] ||
+          @site.config["ai_related_posts"]["openai_api_key"]
+        api_url = @site.config["ai_related_posts"]["api_url"]
+        model = @site.config["ai_related_posts"]["model"]
+        ApiEmbeddings.new(api_key, api_url: api_url, model: model)
       end
     end
 
@@ -158,6 +162,10 @@ module JekyllAiRelatedPosts
       post.data["ai_related_posts"] = related_posts
     end
 
+    def dimensions
+      @embeddings_fetcher&.dimensions || ApiEmbeddings::DEFAULT_DIMENSIONS
+    end
+
     def embedding_text(post)
       text = "Title: #{post.data["title"]}"
       text += "; Categories: #{post.data["categories"].join(", ")}" unless post.data["categories"].empty?
@@ -205,7 +213,7 @@ module JekyllAiRelatedPosts
 
       create_vss_posts = <<-SQL
         CREATE VIRTUAL TABLE IF NOT EXISTS vss_posts using vss0(
-          post_embedding(#{OpenAiEmbeddings::DIMENSIONS})
+          post_embedding(#{dimensions})
         );
       SQL
       ActiveRecord::Base.connection.execute(create_vss_posts)

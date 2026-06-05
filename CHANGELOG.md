@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+- feat: Generic LLM provider support (OpenAI-compatible APIs like OpenRouter) with configurable `api_url` and `model`. Embedding dimensions are auto-discovered from the API.
+
 ## [0.1.4] - 2024-10-12
 
 - Better log messages (improved clarity about what's happening).

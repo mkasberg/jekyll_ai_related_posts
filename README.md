@@ -49,21 +49,33 @@ exclude:
 All config for this plugin sits under a top-level `ai_related_posts` key in
 Jekyll's `_config.yml`.
 
-The only required config is `openai_api_key` -- we need to authenticate to the
+The only required config is an API key -- we need to authenticate to the
 API to fetch embedding vectors.
 
-- **openai_api_key** Your OpenAI API key, used to fetch embeddings.
+- **api_key** (or `openai_api_key` for backward compatibility) Your API key, used to fetch embeddings.
+- **api_url** (optional, default `https://api.openai.com`). The base URL for the embeddings API.
+- **model** (optional, default `text-embedding-3-small`). The model to use for embeddings.
 - **fetch_enabled** (optional, default `true`). If true, fetch embeddings. If
   false, don't fetch embeddings. If this is a string (like `prod`), fetch
   embeddings only when the `JEKYLL_ENV` environment variable is equal to the
   string. (This is useful if you want to reduce API costs by only fetching
   embeddings on production builds.)
 
-### Example Config
+### Example Config: OpenAI (default)
 
 ```yaml
 ai_related_posts:
-  openai_api_key: sk-proj-abc123
+  api_key: sk-proj-abc123
+  fetch_enabled: prod
+```
+
+### Example Config: OpenRouter
+
+```yaml
+ai_related_posts:
+  api_key: sk-or-v1-abc123
+  api_url: https://openrouter.ai/api
+  model: openai/text-embedding-3-small
   fetch_enabled: prod
 ```
 
@@ -129,14 +141,17 @@ fees if done frequently).
 ## How It Works
 
 Jekyll AI Related Posts is implemented as a Jekyll Generator plugin. During the
-build process, the plugin will call the [OpenAI Embeddings
-API](https://platform.openai.com/docs/guides/embeddings) to fetch the vector
-embedding for a string containing the title, tags, and categories of your
-article. It's not necessary to use the full post text, in most cases the title
-and tags produce very accurate results because the LLM knows when topics are
-related even if they never use identical words. This is also why the LLM
-produces better results than LSI. These vector embeddings are cached in a SQLite
-database. To query for related posts, we query the cached vectors using the
+build process, the plugin will call an embeddings API (by default, the [OpenAI
+Embeddings API](https://platform.openai.com/docs/guides/embeddings)) to fetch
+the vector embedding for a string containing the title, tags, and categories of
+your article. The plugin works with any OpenAI-compatible embeddings API, such as
+[OpenRouter](https://openrouter.ai/).
+
+It's not necessary to use the full post text, in most cases the title and tags
+produce very accurate results because the LLM knows when topics are related even
+if they never use identical words. This is also why the LLM produces better
+results than LSI. These vector embeddings are cached in a SQLite database. To
+query for related posts, we query the cached vectors using the
 [sqlite-vss](https://github.com/asg017/sqlite-vss) plugin.
 
 ## Development
