@@ -29,6 +29,10 @@ module JekyllAiRelatedPosts
       @dimensions ||= discover_dimensions
     end
 
+    def model
+      @model
+    end
+
     def embedding_for(text)
       res = @connection.post("/v1/embeddings") do |req|
         req.body = {

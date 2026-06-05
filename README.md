@@ -61,6 +61,10 @@ API to fetch embedding vectors.
   string. (This is useful if you want to reduce API costs by only fetching
   embeddings on production builds.)
 
+**Important:** The plugin stores the model and dimensions in the cache database. If you change the model or dimensions in your config, the plugin will detect the mismatch and exit with an error. You can either:
+- Update your config to match the cached values, or
+- Delete the cache file (`.ai_related_posts_cache.sqlite3`) and it will be regenerated with the new model/dimensions.
+
 ### Example Config: OpenAI (default)
 
 ```yaml

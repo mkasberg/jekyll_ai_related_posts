@@ -3,8 +3,17 @@
 require "jekyll_ai_related_posts"
 
 class MockEmbeddings
+  def initialize(model: nil, dimensions: nil)
+    @model = model || "text-embedding-3-small"
+    @dimensions = dimensions || 1536
+  end
+
   def dimensions
-    1536
+    @dimensions
+  end
+
+  def model
+    @model
   end
 
   def embedding_for(text)
