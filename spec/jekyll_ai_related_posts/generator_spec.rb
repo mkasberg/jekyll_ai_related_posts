@@ -92,4 +92,30 @@ RSpec.describe JekyllAiRelatedPosts::Generator do
       expect(wifi_upgrades).to include("2:::Catching Mew: A Playable Game Boy Quote")
     end
   end
+
+  context "cache metadata mismatch" do
+    it "raises an error when the cached model differs from config" do
+      # First, create a cache with the default model
+      default_config = {
+        "ai_related_posts" => {
+          "api_key" => "my_key",
+          "embeddings_source" => "mock"
+        }
+      }
+      default_site = fixture_site(default_config)
+      default_site.process
+
+      # Now change the config model and try again
+      new_config = {
+        "ai_related_posts" => {
+          "api_key" => "my_key",
+          "embeddings_source" => "mock",
+          "model" => "different-model"
+        }
+      }
+      new_site = fixture_site(new_config)
+
+      expect { new_site.process }.to raise_error(JekyllAiRelatedPosts::Error, /Cache model mismatch/)
+    end
+  end
 end

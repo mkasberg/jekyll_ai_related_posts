@@ -26,6 +26,8 @@ module JekyllAiRelatedPosts
       end
 
       if fetch_enabled?
+        validate_cache_metadata
+
         @site.posts.docs.each do |p|
           ensure_embedding_cached(p)
         end
@@ -85,7 +87,9 @@ module JekyllAiRelatedPosts
     def new_fetcher
       case @site.config["ai_related_posts"]["embeddings_source"]
       when "mock"
-        MockEmbeddings.new
+        model = @site.config["ai_related_posts"]["model"]
+        dimensions = @site.config["ai_related_posts"]["dimensions"]
+        MockEmbeddings.new(model: model, dimensions: dimensions)
       else
         api_key = @site.config["ai_related_posts"]["api_key"] ||
           @site.config["ai_related_posts"]["openai_api_key"]
@@ -166,6 +170,10 @@ module JekyllAiRelatedPosts
       @embeddings_fetcher&.dimensions || ApiEmbeddings::DEFAULT_DIMENSIONS
     end
 
+    def model
+      @embeddings_fetcher&.model || ApiEmbeddings::DEFAULT_MODEL
+    end
+
     def embedding_text(post)
       text = "Title: #{post.data["title"]}"
       text += "; Categories: #{post.data["categories"].join(", ")}" unless post.data["categories"].empty?
@@ -218,7 +226,38 @@ module JekyllAiRelatedPosts
       SQL
       ActiveRecord::Base.connection.execute(create_vss_posts)
 
+      create_cache_metadata = <<-SQL
+        CREATE TABLE IF NOT EXISTS cache_metadata(
+          key TEXT PRIMARY KEY,
+          value TEXT
+        );
+      SQL
+      ActiveRecord::Base.connection.execute(create_cache_metadata)
+
       Jekyll.logger.debug "AI Related Posts:", "DB setup complete"
+    end
+
+    def validate_cache_metadata
+      model = @embeddings_fetcher&.model || ApiEmbeddings::DEFAULT_MODEL
+
+      stored_model = ActiveRecord::Base.connection.execute(
+        "SELECT value FROM cache_metadata WHERE key = 'model';"
+      ).first
+
+      if stored_model && stored_model["value"] != model
+        Jekyll.logger.error "AI Related Posts:", "Cache model mismatch!"
+        Jekyll.logger.error "AI Related Posts:", "  Configured model: #{model}"
+        Jekyll.logger.error "AI Related Posts:", "  Cached model:     #{stored_model["value"]}"
+        Jekyll.logger.error "AI Related Posts:", "Either update your config to match the cached model, or delete the cache file (.ai_related_posts_cache.sqlite3) and it will be regenerated."
+        raise Error, "Cache model mismatch: configured=#{model}, cached=#{stored_model["value"]}"
+      end
+
+      # Store/update metadata if not present
+      if stored_model.nil?
+        ActiveRecord::Base.connection.execute(
+          ActiveRecord::Base.sanitize_sql([ "INSERT INTO cache_metadata (key, value) VALUES ('model', ?);", model ])
+        )
+      end
     end
   end
 end
