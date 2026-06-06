@@ -219,12 +219,14 @@ module JekyllAiRelatedPosts
       SQL
       ActiveRecord::Base.connection.execute(create_posts)
 
-      create_vss_posts = <<-SQL
-        CREATE VIRTUAL TABLE IF NOT EXISTS vss_posts using vss0(
-          post_embedding(#{dimensions})
-        );
-      SQL
-      ActiveRecord::Base.connection.execute(create_vss_posts)
+      unless table_exists?("vss_posts")
+        create_vss_posts = <<-SQL
+          CREATE VIRTUAL TABLE vss_posts using vss0(
+            post_embedding(#{dimensions})
+          );
+        SQL
+        ActiveRecord::Base.connection.execute(create_vss_posts)
+      end
 
       create_cache_metadata = <<-SQL
         CREATE TABLE IF NOT EXISTS cache_metadata(
@@ -235,6 +237,10 @@ module JekyllAiRelatedPosts
       ActiveRecord::Base.connection.execute(create_cache_metadata)
 
       Jekyll.logger.debug "AI Related Posts:", "DB setup complete"
+    end
+
+    def table_exists?(name)
+      ActiveRecord::Base.connection.table_exists?(name)
     end
 
     def validate_cache_metadata
