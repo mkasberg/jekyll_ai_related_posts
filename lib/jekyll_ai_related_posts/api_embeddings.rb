@@ -41,7 +41,17 @@ module JekyllAiRelatedPosts
         }
       end
 
-      embedding = res.body["data"].first["embedding"]
+      data = res.body
+      unless data.is_a?(Hash) &&
+             data["data"].is_a?(Array) &&
+             data["data"][0].is_a?(Hash) &&
+             data["data"][0]["embedding"].is_a?(Array)
+        Jekyll.logger.error "AI Related Posts:", "Unexpected API response structure!"
+        Jekyll.logger.error "AI Related Posts:", "Response body: #{data.inspect}"
+        raise Error, "Unexpected API response: embedding data not found"
+      end
+
+      embedding = data["data"][0]["embedding"]
       @dimensions ||= embedding.length
       embedding
     rescue Faraday::Error => e
