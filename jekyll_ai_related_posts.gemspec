@@ -41,6 +41,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency "sqlite-vss", "~> 0.1.2"
   spec.add_dependency "zeitwerk", "~> 2.6"
 
+  spec.add_development_dependency "ostruct", "~> 0.6"
+
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
 end
