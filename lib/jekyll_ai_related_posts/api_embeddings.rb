@@ -34,7 +34,7 @@ module JekyllAiRelatedPosts
     end
 
     def embedding_for(text)
-      res = @connection.post("/v1/embeddings") do |req|
+      res = @connection.post("v1/embeddings") do |req|
         req.body = {
           input: text,
           model: @model
