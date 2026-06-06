@@ -29,6 +29,18 @@ RSpec.describe JekyllAiRelatedPosts::ApiEmbeddings do
     expect(subject.embedding_for("My test")).to eq([ 0.01, 0.02 ])
   end
 
+  it "handles an unexpected response structure" do
+    stubs.post("/v1/embeddings") do |_env|
+      [
+        200,
+        { "Content-Type" => "application/json" },
+        { data: [ { object: "embedding", index: 0 } ] }.to_json
+      ]
+    end
+
+    expect { capture_output { subject.embedding_for("My test") } }.to raise_error(JekyllAiRelatedPosts::Error, /Unexpected API response/)
+  end
+
   it "handles an error response" do
     stubs.post("/v1/embeddings") do |_env|
       [
